@@ -4,6 +4,7 @@ class LocalScrape extends Module
 {
 	private $folders = array();
 	private $configuredFolders = array();
+	private $iterators = array();
 	private $filecount = 0;
 	private $fp = array();
 	private $analyzed = array();
@@ -30,7 +31,7 @@ class LocalScrape extends Module
 		foreach($sizes as $s)
 			$this->sizes[] = explode('x', $s);
 		
-		Events::hook(array($this, 'updateDirectory'), 1);
+		Events::hook(array($this, 'updateDirectory'), 10);
 		Events::hook(array($this, 'walkDirectory'), -1);
 	}
 	
@@ -45,16 +46,27 @@ class LocalScrape extends Module
 				return;
 			}
 		}
+		while(!isset($this->fp[$this->current][$this->iterators[$this->current]]))
+		{
+			$this->iterators[$this->current]++;
+			if($this->iterators[$this->current] >= count($this->fp[$this->current]))
+				break;
+		}
 		
 		//If there is still data to read from the filelist
-		while(!feof($this->fp[$this->current]))
+		if($this->iterators[$this->current] < count($this->fp[$this->current]))
 		{
-			$fname = trim(fgets($this->fp[$this->current]));
+			
+			$fname = $this->fp[$this->current][$this->iterators[$this->current]];
 			$file = $this->folders[$this->current].'/'.$fname;
-			Scrapebot::status("Analyzing $fname...");
-			if(is_dir($file) && !in_array($fname, array('', '.', '..')))
+			Scrapebot::status($fname);
+			if(is_dir($file))
 			{
-				$this->folders[] = $file;
+				if(!in_array($fname, array('', '.', '..')) && !in_array($file, $this->folders))
+				{
+					$this->folders[] = $file;
+					//$this->updateDirectory();
+				}
 			}
 			else
 			{
@@ -98,12 +110,14 @@ class LocalScrape extends Module
 				
 				fputs($this->analyzed[$this->current], $fname."\n");
 			}
+			$this->iterators[$this->current]++;
 		}
-		//~ else
+		else
 		{
-			fclose($this->fp[$this->current]);
 			fclose($this->analyzed[$this->current]);
 			unset($this->fp[$this->current]);
+			unset($this->iterators[$this->current]);
+			Scrapebot::message("Finished analysis of ".$this->folders[$this->current]);
 		}
 		
 		$this->current++;
@@ -131,13 +145,9 @@ class LocalScrape extends Module
 					$content = array_diff($content, $read);
 				}
 				
-				$this->fp[$i] = tmpfile();
-				fputs($this->fp[$i], join("\n", $content));
-				fseek($this->fp[$i], 0);
+				$this->fp[$i] = $content;
 				$this->analyzed[$i] = fopen($folder.'/scrapebot.lst', 'a+');
-				//~ $filename = uniqid(md5(time()), true);
-				//~ system('ls '.$this->folders[$this->current].' > tmp/'.$filename);
-				//~ $this->fp[$this->current] = fopen('tmp/'.$filename, 'r+');
+				$this->iterators[$i] = 0;
 			}
 		}
 	}
