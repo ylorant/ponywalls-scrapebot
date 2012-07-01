@@ -52,6 +52,7 @@ class ModuleManager
 class Events
 {
 	private $hooks = array();
+	private $events = array();
 	
 	public static $instance;
 	
@@ -93,6 +94,36 @@ class Events
 				$hook['last'] = time();
 				call_user_func_array($hook['call'], array());
 			}
+		}
+	}
+	
+	public function s_bind($ev, $func)
+	{
+		if(!isset($this->events[$ev]))
+			$this->events[$ev] = array();
+		$this->events[$ev][] = $func;
+	}
+	
+	public function s_unbind($ev, $func)
+	{
+		if(isset($this->events[$ev]))
+		{
+			foreach($this->events as $k => $v)
+			{
+				if($v == $func)
+					unset($this->events[$ev][$k]);
+			}
+		}
+	}
+	
+	public function s_trigger($ev)
+	{
+		$args = func_get_args();
+		array_shift($args);
+		if(isset($this->events[$ev]))
+		{
+			foreach($this->events[$ev] as $event)
+				call_user_func_array($event, $args);
 		}
 	}
 }

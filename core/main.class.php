@@ -50,6 +50,14 @@ class Scrapebot
 		}
 	}
 	
+	public static function parseBool($bool)
+	{
+		if(in_array($bool, array('true', 'on', '1')))
+			return true;
+		else
+			return false;
+	}
+	
 	public static function message($message, $level = E_NOTICE)
 	{
 		if(!self::$verbose)
@@ -92,6 +100,9 @@ class Scrapebot
 			echo str_repeat(' ', self::$status);
 			echo "\r";
 		}
+		
+		if($message > 79)
+			$message = substr($message,0,76).'...';
 		
 		self::$status = strlen($message);
 		echo $message;
