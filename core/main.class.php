@@ -3,6 +3,7 @@
 class Scrapebot
 {
 	public static $verbose = false;
+	public static $forked = false;
 	private $config;
 	private static $status = false;
 	public $modules;
@@ -15,6 +16,8 @@ class Scrapebot
 		$this->config = new Config('conf/');
 		$this->config->load();
 		$config = $this->config;
+		Scrapebot::message('Loading shared memory...');
+		Memory::init($this);
 		Scrapebot::message('Connecting to database...');
 		DB::connect($config('Database.Engine'),
 					$config('Database.Host'),
@@ -34,6 +37,7 @@ class Scrapebot
 			return true;
 		else
 		{
+			self::$verbose = true;
 			call_user_func_array($callback, $params);
 			die();
 		}
@@ -45,6 +49,10 @@ class Scrapebot
 		while(true)
 		{
 			Events::tick();
+			
+			if(self::$forked == false)
+				Memory::iteration();
+			
 			usleep(10000);
 			pcntl_waitpid(-1, $st, WNOHANG);
 		}

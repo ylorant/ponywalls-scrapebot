@@ -6,7 +6,7 @@ class ModuleManager
 	private $classNames = array();
 	private $config;
 	
-	public function __construct($config)
+	public function __construct(Config $config)
 	{
 		$this->config = $config;
 		
@@ -72,8 +72,8 @@ class Events
 	
 	public function s_hook($func, $interval)
 	{
-		Scrapebot::message('Hook added for func'.$func[1].' every '.$interval.' seconds.');
 		$this->hooks[] = array('call' => $func, 'interval' => $interval, 'last' => 0);
+		Scrapebot::message('Hook added for func '.$func[1].' every '.$interval.' seconds.');
 	}
 	
 	public function s_unhook($func)
@@ -102,6 +102,7 @@ class Events
 		if(!isset($this->events[$ev]))
 			$this->events[$ev] = array();
 		$this->events[$ev][] = $func;
+		Scrapebot::message('Event '.$ev.' bound on func '.get_class($func[0]).'::'.$func[1]);
 	}
 	
 	public function s_unbind($ev, $func)
@@ -125,22 +126,5 @@ class Events
 			foreach($this->events[$ev] as $event)
 				call_user_func_array($event, $args);
 		}
-	}
-}
-
-class Module
-{
-	protected $config;
-	
-	public function __construct($config)
-	{
-		$this->config = $config;
-		
-		$this->init();
-	}
-	
-	public function init()
-	{
-		
 	}
 }

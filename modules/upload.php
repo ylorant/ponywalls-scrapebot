@@ -1,4 +1,8 @@
 <?php
+namespace Modules;
+use \Scrapebot;
+use \Events;
+use \Memory;
 
 class Upload extends Module
 {
@@ -22,17 +26,25 @@ class Upload extends Module
 			);
 		}
 		
-		Events::bind('data.local', array($this, 'addToQueue'));
 		Events::hook(array($this, 'upload'), 5);
+		Events::bind('data.local', array($this, 'addToQueue'));
 	}
 	
 	public function addToQueue($path, $data)
 	{
-		
+		Scrapebot::message('Adding wallpaper to upload queue');
+		Memory::set('modules->modules|upload->queue|'.$path, $data);
 	}
 	
 	public function upload()
 	{
+		if(count($this->queue) == 0)
+			return;
+		
+		$key = array_shift(array_keys($this->queue));
+		$data = $this->queue[$key];
+		
+		Scrapebot::message('Uploading '.$key.'...');
 		if($this->useCurl)
 		{
 			$ch = curl_init();
@@ -42,13 +54,15 @@ class Upload extends Module
 		    curl_setopt($ch, CURLOPT_URL, $this->curlParams['url']);
 		    curl_setopt($ch, CURLOPT_POST, true);
 		    $post = array(
-				$this->curlParams['filefield'] => $path,
+				$this->curlParams['filefield'] => '@'.$key,
 				$this->curlParams['keywordsfield'] => join(' ', $data['keywords'])
 			);
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $post); 
 			curl_exec($ch);
 		}
+		Scrapebot::message('Uploaded '.$key.'.');
+		unset($this->queue[$key]);
 	}
 }
 
-$this->setClassName('upload', 'Upload');
+$this->setClassName('upload', 'Modules\Upload');

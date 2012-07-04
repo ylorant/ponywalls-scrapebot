@@ -1,4 +1,7 @@
 <?php
+namespace Modules;
+use \Events;
+use \Scrapebot;
 
 class FileData extends Module
 {
@@ -73,12 +76,11 @@ class FileData extends Module
 				}
 			}
 		}
-		
-		print_r($data);
+		Scrapebot::message('Got data from file.');
 		Events::trigger('data.local', $path, $data);
 	}
 }
 
-$this->setClassName('filedata', 'FileData');
+$this->setClassName('filedata', 'Modules\FileData');
 
 ?>

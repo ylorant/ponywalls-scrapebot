@@ -1,4 +1,7 @@
 <?php
+namespace Modules;
+use \Events;
+use \Scrapebot;
 
 class LocalScrape extends Module
 {
@@ -154,4 +157,4 @@ class LocalScrape extends Module
 	}
 }
 
-$this->setClassName('localscrape', 'LocalScrape');
+$this->setClassName('localscrape', 'Modules\LocalScrape');
