@@ -34,7 +34,7 @@ class LocalScrape extends Module
 			$this->sizes[] = explode('x', $s);
 		
 		//Events::hook(array($this, 'updateDirectory'), 10);
-		Events::hook(array($this, 'walkDirectory'), -1);
+		Events::hook(array($this, 'walkDirectory'), 5);
 		
 		$this->updateDirectory();
 	}

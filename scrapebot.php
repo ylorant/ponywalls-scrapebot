@@ -1,6 +1,7 @@
 <?php
 
 include('core/config.class.php');
+include('core/memory.class.php');
 include('core/db.class.php');
 include('core/main.class.php');
 include('core/modules.class.php');
