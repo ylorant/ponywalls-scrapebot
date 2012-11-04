@@ -3,6 +3,7 @@ namespace Modules;
 use \Scrapebot;
 use \Events;
 use \Memory;
+use \Config;
 
 class Upload extends Module
 {
@@ -15,7 +16,7 @@ class Upload extends Module
 	public function init()
 	{
 		$this->destination = Config::get('Upload.Destination');
-		$this->useCurl = Scrapebot::parseBool($this->config->get('Upload.UseCURL'));
+		$this->useCurl = Scrapebot::parseBool(Config::get('Upload.UseCURL'));
 		
 		if($this->useCurl)
 		{

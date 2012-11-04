@@ -2,6 +2,7 @@
 namespace Modules;
 use \Events;
 use \Scrapebot;
+use \Config;
 
 class LocalScrape extends Module
 {
