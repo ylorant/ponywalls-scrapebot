@@ -34,7 +34,7 @@ class LocalScrape extends Module
 		$sizes = explode(',', str_replace(' ','', Config::get('LocalScrape.AllowedSizes')));
 		
 		$analyzeInterval = null;
-		$analyzeInterval = Config::get('LocalScrape.AnalyzeInterval');
+		$analyzeInterval = Config::get('LocalScrape.TimeInterval');
 		if($analyzeInterval === null)
 			$analyzeInterval = 5;
 		
