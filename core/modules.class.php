@@ -6,14 +6,12 @@ class ModuleManager
 	private $classNames = array();
 	private $config;
 	
-	public function __construct(Config $config)
+	public function __construct()
 	{
-		$this->config = $config;
-		
-		$initial = $this->config->get('Modules.Autoload');
+		$initial = Config::get('Modules.Autoload');
 		$initial = explode(',', str_replace(' ', '', $initial));
 		
-		Scrapebot::message('Loading modules: '.$this->config->get('Modules.Autoload'));
+		Scrapebot::message('Loading modules: '.Config::get('Modules.Autoload'));
 		$this->load($initial);
 	}
 	

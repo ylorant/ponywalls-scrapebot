@@ -1,6 +1,6 @@
 <?php
 
-class Config
+class ConfigParser
 {
 	private $_configDirectory;
 	private $config;
@@ -232,5 +232,29 @@ class Config
 	public function dump($file)
 	{
 		file_put_contents($file, $this->generateINIStringRecursive());
+	}
+}
+
+class Config
+{
+	private static $instance;
+	
+	public static function getInstance()
+	{
+		if(!self::$instance)
+			self::$instance = new ConfigParser();
+		
+		return self::$instance;
+	}
+	
+	public static function setInstance(ConfigParser $inst)
+	{
+		self::$instance = $inst;
+	}
+	
+	public static function __callStatic($func, $args)
+	{
+		$self = self::getInstance();
+		return call_user_func_array(array($self, $func), $args);
 	}
 }

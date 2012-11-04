@@ -2,6 +2,7 @@
 namespace Modules;
 use \Events;
 use \Scrapebot;
+use \Config;
 
 class FileData extends Module
 {
@@ -10,8 +11,8 @@ class FileData extends Module
 	
 	public function init()
 	{
-		$this->regexes = $this->config->get('FileData.Regexes');
-		$this->correspondences = $this->config->get('FileData.Correspondences');
+		$this->regexes = Config::get('FileData.Regexes');
+		$this->correspondences = Config::get('FileData.Correspondences');
 		
 		foreach($this->correspondences as &$c)
 		{

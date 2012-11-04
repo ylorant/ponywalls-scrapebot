@@ -82,6 +82,6 @@ class Memory
 	public static function __callStatic($func, $args)
 	{
 		$self = self::getInstance();
-		call_user_func_array(array($self, $func), $args);
+		return call_user_func_array(array($self, $func), $args);
 	}
 }

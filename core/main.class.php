@@ -13,18 +13,17 @@ class Scrapebot
 	public function init()
 	{
 		Scrapebot::message('Scrapebot for Ponywalls, version '. Scrapebot::VERSION);	
-		$this->config = new Config('conf/');
-		$this->config->load();
-		$config = $this->config;
+		Config::setInstance(new ConfigParser('conf/'));
+		Config::load();
 		Scrapebot::message('Loading shared memory...');
 		Memory::init($this);
 		Scrapebot::message('Connecting to database...');
-		DB::connect($config('Database.Engine'),
-					$config('Database.Host'),
-					$config('Database.Port'),
-					$config('Database.User'),
-					$config('Database.Password'),
-					$config('Database.Name'));
+		DB::connect(Config::get('Database.Engine'),
+					Config::get('Database.Host'),
+					Config::get('Database.Port'),
+					Config::get('Database.User'),
+					Config::get('Database.Password'),
+					Config::get('Database.Name'));
 		$this->modules = new ModuleManager($this->config);
 	}
 	

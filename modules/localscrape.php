@@ -18,23 +18,23 @@ class LocalScrape extends Module
 	
 	public function init()
 	{
-		if(!$this->config->get('LocalScrape.Folders'))
+		if(!Config::get('LocalScrape.Folders'))
 			return false;
 		
-		foreach($this->config->get('LocalScrape.Folders') as $name => $folder)
+		foreach(Config::get('LocalScrape.Folders') as $name => $folder)
 		{
 			$this->folders[] = $folder;
 			$this->configuredFolders[$name] = $folder;
 		}
 		
-		$this->outpath = $this->config->get('LocalScrape.OutPath');
-		if($this->config->get('LocalScrape.NoOutput'))
+		$this->outpath = Config::get('LocalScrape.OutPath');
+		if(Config::get('LocalScrape.NoOutput'))
 			$this->outpath = null;
-		$this->types = explode(',', str_replace(' ','', $this->config->get('LocalScrape.MIMETypes')));
-		$sizes = explode(',', str_replace(' ','', $this->config->get('LocalScrape.AllowedSizes')));
+		$this->types = explode(',', str_replace(' ','', Config::get('LocalScrape.MIMETypes')));
+		$sizes = explode(',', str_replace(' ','', Config::get('LocalScrape.AllowedSizes')));
 		
 		$analyzeInterval = null;
-		$analyzeInterval = $this->config->get('LocalScrape.AnalyzeInterval');
+		$analyzeInterval = Config::get('LocalScrape.AnalyzeInterval');
 		if($analyzeInterval === null)
 			$analyzeInterval = 5;
 		

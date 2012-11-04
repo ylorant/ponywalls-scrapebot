@@ -1,5 +1,6 @@
 <?php
 namespace Modules;
+use \Config;
 
 class Module
 {

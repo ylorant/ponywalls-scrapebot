@@ -1,3 +1,4 @@
+;Database parameters
 [Database]
 Engine=mysql;
 Host=localhost;
@@ -6,14 +7,40 @@ User=;
 Password=;
 Name=;
 
+;Modules to load
 [Modules]
-Autoload=localscrape;
+Autoload=localscrape,filedata,upload;
 
+;Local scrape output directory and filters : type, size
+;TimeInterval: sets the interval between each *file* check. -1 does non-stop checks.
 [LocalScrape]
+TimeInterval=-1;
 MIMETypes=image/png,image/jpeg;
 AllowedSizes=800x600,1024x768,1280x800,1280x1024,1366x768,1440x900,1600x900,1680x1050,1920x1080,1920x1200;
 SizeTreshold=0%;
 OutPath=wallpapers/{filename};
 
+;Folder list to scrape (subfolders are added automagically)
 [LocalScrape.Folders]
 somefolder=folder/subfolder;
+
+;Regexes for data extraction from filename
+[FileData.Regexes]
+ponibooru=#([0-9]{1,}) - ([a-z0-9: _-]*)\.[a-z]+#isU;
+default=#^(.*)$#;
+
+;Correspondences for data extraction regexes
+;To auto-split a parameter as an array on a string, use array:<field>/<separator>
+[FileData.Correspondences]
+ponibooru=filename,id,array:keywords/ ;
+default=filename;
+
+;Upload parameters, especially direct upload parameters
+[Upload]
+Destination=ftp://user:password@host/path/to/folder/{filename};
+UseCURL=false;
+
+[Upload.CURL]
+PostURL=http://ponywalls.net/wallpapers/add
+FileField=file
+KeywordsField=tags

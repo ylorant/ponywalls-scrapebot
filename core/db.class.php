@@ -3,8 +3,7 @@
 class Database {
 
 	protected $_PDO;
-	protected $_query;
-	protected $_curParamID = 1;
+	protected $_queries = array();
 	
 	public function connect($engine, $host, $port, $user, $password, $db)
 	{
@@ -13,7 +12,23 @@ class Database {
 
 	public function prepare($query)
 	{
-		$this->_query = $this->_PDO->prepare($query);
+		return new DBQuery($this->_PDO->prepare($query));
+	}
+	
+	public function lastInsertID()
+	{
+		return $this->_PDO->lastInsertId();
+	}
+}
+
+class DBQuery
+{
+	private $_query;
+	protected $_curParamID = 1;
+	
+	public function __construct(PDOStatement $query)
+	{
+		$this->_query = $query;
 	}
 	
 	public function bind($name, $value = NULL)
@@ -30,15 +45,8 @@ class Database {
 	
 	public function execute($values = array())
 	{
-		/*
-		foreach($values as $name => $value)
-		{
-			if($name[0] == ':')
-				$this->bind($name, $value);
-			else
-				$this->bind($value);
-		}
-		*/
+		if(!is_array($values))
+			$values = func_get_args();
 		
 		return $this->_query->execute($values);
 	}
@@ -57,16 +65,6 @@ class Database {
 	{
 		$this->_query->resetCursor();
 	}
-	
-	public function drop()
-	{
-		unset($this->_query);
-	}
-	
-	public function lastInsertID()
-	{
-		return $this->_PDO->lastInsertId();
-	}
 }
 
 class DB
@@ -75,16 +73,16 @@ class DB
 	
 	public static function getInstance()
 	{
-		if(!DB::$instance)
-			DB::$instance = new Database();
+		if(!self::$instance)
+			self::$instance = new Database();
 		
-		return DB::$instance;
+		return self::$instance;
 	}
 	
 	public static function __callStatic($func, $args)
 	{
-		$self = DB::getInstance();
-		call_user_func_array(array($self, $func), $args);
+		$self = self::getInstance();
+		return call_user_func_array(array($self, $func), $args);
 	}
 }
 ?>

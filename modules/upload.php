@@ -14,15 +14,15 @@ class Upload extends Module
 	
 	public function init()
 	{
-		$this->destination = $this->config->get('Upload.Destination');
+		$this->destination = Config::get('Upload.Destination');
 		$this->useCurl = Scrapebot::parseBool($this->config->get('Upload.UseCURL'));
 		
 		if($this->useCurl)
 		{
 			$this->curlParams = array(
-			'url' => $this->config->get('Upload.CURL.PostURL'),
-			'filefield' => $this->config->get('Upload.CURL.FileField'),
-			'keywordsfield' => $this->config->get('Upload.CURL.KeywordsField')
+			'url' => Config::get('Upload.CURL.PostURL'),
+			'filefield' => Config::get('Upload.CURL.FileField'),
+			'keywordsfield' => Config::get('Upload.CURL.KeywordsField')
 			);
 		}
 		
