@@ -33,7 +33,11 @@ class Upload extends Module
 	public function addToQueue($path, $data)
 	{
 		Scrapebot::message('Adding wallpaper to upload queue');
-		Memory::set('modules->modules|upload->queue|'.$path, $data);
+		
+		if(Scrapebot::$forked)
+			Memory::set('modules->modules|upload->queue|'.$path, $data);
+		else
+			$this->queue[$path] = $data;
 	}
 	
 	public function upload()
@@ -47,20 +51,23 @@ class Upload extends Module
 		Scrapebot::message('Uploading '.$key.'...');
 		if($this->useCurl)
 		{
-			$ch = curl_init();
-		    curl_setopt($ch, CURLOPT_HEADER, 0);
-		    curl_setopt($ch, CURLOPT_VERBOSE, 0);
-		    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		    curl_setopt($ch, CURLOPT_URL, $this->curlParams['url']);
-		    curl_setopt($ch, CURLOPT_POST, true);
-		    $post = array(
-				$this->curlParams['filefield'] => '@'.$key,
-				$this->curlParams['keywordsfield'] => join(' ', $data['keywords'])
-			);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $post); 
-			curl_exec($ch);
+			Scrapebot::fork(function($path, $data)
+			{
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_HEADER, 0);
+				curl_setopt($ch, CURLOPT_VERBOSE, 0);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_URL, $this->curlParams['url']);
+				curl_setopt($ch, CURLOPT_POST, true);
+				$post = array(
+					$this->curlParams['filefield'] => '@'.$path,
+					$this->curlParams['keywordsfield'] => join(' ', $data['keywords'])
+				);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $post); 
+				curl_exec($ch);
+				Scrapebot::message('Uploaded '.$path.'.');
+			}, array($key, $data));
 		}
-		Scrapebot::message('Uploaded '.$key.'.');
 		unset($this->queue[$key]);
 	}
 }

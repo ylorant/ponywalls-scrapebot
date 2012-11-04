@@ -2,6 +2,7 @@
 namespace Modules;
 use \Events;
 use \Scrapebot;
+use \Memory;
 use \Gtk;
 use \GtkWindow;
 use \GtkEntry;
@@ -19,9 +20,15 @@ class GtkInfo extends Module
 	private $image;
 	private $keywords;
 	private $imagepath;
+	private $loop;
+	
+	public $list;
 	
 	public function init()
 	{
+		$this->list = array();
+		$this->loop = false;
+		
 		$this->window = new GtkWindow();
 		$this->keywords = new GtkEntry();
 		$this->image = new GtkImage();
@@ -45,7 +52,7 @@ class GtkInfo extends Module
 		$mainBox->pack_start($buttonBox, false, false);
 		
 		$validateButton->connect_simple('clicked', array($this, 'sendWallpaper'));
-		$validateButton->connect_simple('clicked', array($this, 'skipWallpaper'));
+		$skipButton->connect_simple('clicked', array($this, 'skipWallpaper'));
 		
 		$this->window->add($mainBox);
 		$this->window->set_default_size(500, 350);
@@ -53,23 +60,40 @@ class GtkInfo extends Module
 		$this->window->connect_simple('destroy', array($this, 'stop'));
 		
 		Events::bind('added.local', array($this, 'wallpaperAdded'));
+		Events::hook(array($this, 'iteration'), -1);
 	}
 	
 	public function wallpaperAdded($path)
 	{
-		$this->imagepath = $path;
-		$pixbuf = GdkPixbuf::new_from_file_at_size($path, 500, 300);
-		//~ $pixbuf->scale_simple(500, 300, Gdk::INTERP_NEAREST);
-		$this->image->set_from_pixbuf($pixbuf);
-		$this->keywords->set_text('');
+		$this->list[] = $path;
+	}
+	
+	public function iteration()
+	{
+		Gtk::main_iteration_do(false);
 		
-		$this->window->resize(500, 350);
-		$this->window->show_all();
-		Gtk::main();
+		if(empty($this->list))
+			return;
+		
+		if(!$this->loop)
+		{
+			$path = array_shift($this->list);
+			$this->imagepath = $path;
+			$pixbuf = GdkPixbuf::new_from_file_at_size($path, 500, 300);
+			
+			$this->image->set_from_pixbuf($pixbuf);
+			$this->keywords->set_text('');
+			
+			$this->window->resize(500, 350);
+			$this->window->show_all();
+			
+			$this->loop = true;
+		}
 	}
 	
 	public function stop()
 	{
+		echo "\n";
 		die();
 	}
 	
@@ -92,17 +116,16 @@ class GtkInfo extends Module
 		}
 		
 		$this->window->hide_all();
-		Gtk::main_quit();
-		Gtk::main_iteration();
+		$this->loop = false;
 		
 		Events::trigger('data.local', $this->imagepath, $data);
 	}
 	
 	public function skipWallpaper()
 	{
+		Scrapebot::message("Skipped.");
 		$this->window->hide_all();
-		Gtk::main_quit();
-		Gtk::main_iteration();
+		$this->loop = false;
 	}
 }
 

@@ -33,11 +33,16 @@ class LocalScrape extends Module
 		$this->types = explode(',', str_replace(' ','', $this->config->get('LocalScrape.MIMETypes')));
 		$sizes = explode(',', str_replace(' ','', $this->config->get('LocalScrape.AllowedSizes')));
 		
+		$analyzeInterval = null;
+		$analyzeInterval = $this->config->get('LocalScrape.AnalyzeInterval');
+		if($analyzeInterval === null)
+			$analyzeInterval = 5;
+		
 		foreach($sizes as $s)
 			$this->sizes[] = explode('x', $s);
 		
 		//Events::hook(array($this, 'updateDirectory'), 10);
-		Events::hook(array($this, 'walkDirectory'), 5);
+		Events::hook(array($this, 'walkDirectory'), $analyzeInterval);
 		
 		$this->updateDirectory();
 	}

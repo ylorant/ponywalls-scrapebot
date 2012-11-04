@@ -47,7 +47,7 @@ class SharedMemory
 				if(strpos($el, '|') !== FALSE)
 				{
 					$el = explode('|', $el);
-					if($el[0])
+					if(!empty($el[0]))
 						$ref = &$ref->{$el[0]};
 					
 					array_shift($el);
@@ -61,6 +61,7 @@ class SharedMemory
 				else
 					$ref = &$ref->$el;
 			}
+			
 			$ref = $value;
 		}
 	}
