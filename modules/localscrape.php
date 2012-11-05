@@ -56,6 +56,9 @@ class LocalScrape extends Module
 			//~ if($this->iterator >= count($this->fp))
 				//~ break;
 		//~ }
+
+		if(empty($this->fp))
+			return;
 		
 		//If there is still data to read from the filelist
 		if($this->iterator < count($this->fp))
