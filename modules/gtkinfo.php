@@ -14,6 +14,12 @@ use \GtkLabel;
 use \GdkPixbuf;
 use \Gdk;
 
+if(!extension_loaded('php_gtk2'))
+{
+	dl('cairo.so');
+	dl('php_gtk2.so');
+}
+
 class GtkInfo extends Module
 {
 	private $window;
@@ -21,6 +27,7 @@ class GtkInfo extends Module
 	private $keywords;
 	private $imagepath;
 	private $loop;
+	private $keywordCache;
 	
 	public $list;
 	
@@ -28,6 +35,7 @@ class GtkInfo extends Module
 	{
 		$this->list = array();
 		$this->loop = false;
+		$this->keywordCache = array();
 		
 		$this->window = new GtkWindow();
 		$this->keywords = new GtkEntry();
@@ -53,6 +61,7 @@ class GtkInfo extends Module
 		
 		$validateButton->connect_simple('clicked', array($this, 'sendWallpaper'));
 		$skipButton->connect_simple('clicked', array($this, 'skipWallpaper'));
+		$this->keywords->connect('key-press-event', array($this, 'autocompleteKeyword'));
 		
 		$this->window->add($mainBox);
 		$this->window->set_default_size(500, 350);
@@ -61,6 +70,23 @@ class GtkInfo extends Module
 		
 		Events::bind('added.local', array($this, 'wallpaperAdded'));
 		Events::hook(array($this, 'iteration'), -1);
+	}
+	
+	public function autocompleteKeyword($widget, $event)
+	{
+		$text = $this->keywords->get_text();
+		$text = substr($text, 0, $this->keywords->get_property("cursor-position"));
+		$words = explode(" ", $text);
+		$currentWord = array_pop($words);
+		
+		foreach($this->keywordCache as $keyword)
+		{
+			if(strpos($keyword, $currentWord) === 0)
+			{
+				$complete = substr($keyword, strlen($currentWord) - 1);
+				
+			}
+		}
 	}
 	
 	public function wallpaperAdded($path)
