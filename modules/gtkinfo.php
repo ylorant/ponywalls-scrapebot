@@ -29,6 +29,7 @@ class GtkInfo extends Module
 	private $loop;
 	private $keywordCache;
 	private $insertHandlerID;
+	private $autocompleteSelect;
 	
 	public $list;
 	
@@ -63,6 +64,8 @@ class GtkInfo extends Module
 		$validateButton->connect_simple('clicked', array($this, 'sendWallpaper'));
 		$skipButton->connect_simple('clicked', array($this, 'skipWallpaper'));
 		$this->insertHandlerID = $this->keywords->connect_after('insert-text', array($this, 'autocompleteKeyword'));
+		$this->keywords->connect('key-press-event', array($this, 'validAutocompletion'));
+		$this->keywords->connect_after('key-release-event', array($this, 'selectAutocomplete'));
 		
 		$this->window->add($mainBox);
 		$this->window->set_default_size(500, 350);
@@ -73,6 +76,28 @@ class GtkInfo extends Module
 		Events::hook(array($this, 'iteration'), -1);
 	}
 	
+	public function validAutocompletion($widget, $event)
+	{
+		if ($event->keyval == Gdk::KEY_Tab)
+		{
+			$text = $this->keywords->get_property("text");
+			$text .= " ";
+			$this->keywords->set_text($text);
+			$this->keywords->set_position(strlen($text));
+			return true;
+		}
+		
+	}
+	
+	public function selectAutocomplete()
+	{
+		if(!empty($this->autocompleteSelect))
+		{
+			$this->keywords->select_region($this->autocompleteSelect[0], $this->autocompleteSelect[1]);
+			$this->autocompleteSelect = null;
+		}
+	}
+	
 	public function autocompleteKeyword($widget, $newText)
 	{
 		$text = $this->keywords->get_property("text");
@@ -81,7 +106,6 @@ class GtkInfo extends Module
 		$sub .= $newText;
 		$post = substr($text, $cursorPosition);
 		$words = explode(" ", $sub);
-		Scrapebot::message("Sub: ". print_r($sub, true));
 		$currentWord = array_pop($words);
 		
 		if(strlen($currentWord))
@@ -91,11 +115,12 @@ class GtkInfo extends Module
 				if(strpos($keyword, $currentWord) === 0)
 				{
 					$complete = substr($keyword, strlen($currentWord));
-					var_dump($text.$complete);
 					$this->keywords->block($this->insertHandlerID);
-					$this->keywords->select_region(0, strlen($sub.$complete));
-					$this->keywords->set_text($sub.$complete);
+					$this->autocompleteSelect = array(strlen($sub), strlen($sub.$complete));
+					$this->keywords->set_text($sub.$complete.$post);
 					$this->keywords->unblock($this->insertHandlerID);
+					$this->keywords->realize();
+					Gtk::main_iteration_do();
 					return true;
 				}
 			}
