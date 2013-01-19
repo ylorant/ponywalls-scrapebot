@@ -28,6 +28,7 @@ class GtkInfo extends Module
 	private $imagepath;
 	private $loop;
 	private $keywordCache;
+	private $insertHandlerID;
 	
 	public $list;
 	
@@ -35,7 +36,7 @@ class GtkInfo extends Module
 	{
 		$this->list = array();
 		$this->loop = false;
-		$this->keywordCache = array();
+		$this->keywordCache = array('twilight', 'sparkle');
 		
 		$this->window = new GtkWindow();
 		$this->keywords = new GtkEntry();
@@ -61,7 +62,7 @@ class GtkInfo extends Module
 		
 		$validateButton->connect_simple('clicked', array($this, 'sendWallpaper'));
 		$skipButton->connect_simple('clicked', array($this, 'skipWallpaper'));
-		$this->keywords->connect('key-press-event', array($this, 'autocompleteKeyword'));
+		$this->insertHandlerID = $this->keywords->connect_after('insert-text', array($this, 'autocompleteKeyword'));
 		
 		$this->window->add($mainBox);
 		$this->window->set_default_size(500, 350);
@@ -72,19 +73,31 @@ class GtkInfo extends Module
 		Events::hook(array($this, 'iteration'), -1);
 	}
 	
-	public function autocompleteKeyword($widget, $event)
+	public function autocompleteKeyword($widget, $newText)
 	{
-		$text = $this->keywords->get_text();
-		$text = substr($text, 0, $this->keywords->get_property("cursor-position"));
-		$words = explode(" ", $text);
+		$text = $this->keywords->get_property("text");
+		$cursorPosition = $this->keywords->get_property("cursor-position")+1;
+		$sub = substr($text, 0, $cursorPosition-1);
+		$sub .= $newText;
+		$post = substr($text, $cursorPosition);
+		$words = explode(" ", $sub);
+		Scrapebot::message("Sub: ". print_r($sub, true));
 		$currentWord = array_pop($words);
 		
-		foreach($this->keywordCache as $keyword)
+		if(strlen($currentWord))
 		{
-			if(strpos($keyword, $currentWord) === 0)
+			foreach($this->keywordCache as $keyword)
 			{
-				$complete = substr($keyword, strlen($currentWord) - 1);
-				
+				if(strpos($keyword, $currentWord) === 0)
+				{
+					$complete = substr($keyword, strlen($currentWord));
+					var_dump($text.$complete);
+					$this->keywords->block($this->insertHandlerID);
+					$this->keywords->select_region(0, strlen($sub.$complete));
+					$this->keywords->set_text($sub.$complete);
+					$this->keywords->unblock($this->insertHandlerID);
+					return true;
+				}
 			}
 		}
 	}
@@ -127,6 +140,8 @@ class GtkInfo extends Module
 	{
 		$data = array();
 		$data["keywords"] = explode(' ', $this->keywords->get_text());
+		
+		$this->keywordCache = array_merge($this->keywordCache, $data["keywords"]);
 		
 		if(!empty($data['keywords']))
 		{
